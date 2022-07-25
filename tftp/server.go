@@ -1,7 +1,6 @@
 package tftp
 
 import (
-	"fmt"
 	"log"
 	"net"
 )
@@ -13,6 +12,7 @@ const (
 
 type Server struct {
 	addr string
+	stop chan struct{}
 }
 
 func NewServer(opts ...Option) *Server {
@@ -38,16 +38,19 @@ func (s *Server) ListenAndServer(address string) error {
 }
 
 func (s *Server) Serve(conn net.PacketConn) error {
+	s.stop = make(chan struct{})
 
 	for {
-		buf := make([]byte, DatagramSize)
-
-		_, addr, err := conn.ReadFrom(buf)
-		if err != nil {
-			return err
+		select {
+		case <-s.stop:
+			return nil
+		default:
+			buf := make([]byte, DatagramSize)
+			_, addr, err := conn.ReadFrom(buf)
+			if err != nil {
+				return err
+			}
 		}
-
-		fmt.Println(addr)
 	}
 
 	return nil
