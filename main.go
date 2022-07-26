@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/go-tftp/tftp"
 	"log"
 	"time"
+
+	"github.com/go-tftp/tftp"
 )
 
 var (
@@ -12,10 +13,8 @@ var (
 )
 
 func main() {
-
 	flag.Parse()
 
 	s := tftp.NewServer(tftp.WithTimeout(10 * time.Second))
 	log.Fatal(s.ListenAndServer(*address))
-
 }
