@@ -95,5 +95,15 @@ func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
 		return err
 	}
 
+	switch code {
+	case OpRRQ:
+		rrq := newReadRequest()
+		if err = rrq.UnmarshalBinary(buf); err != nil {
+			return err
+		}
+	case OpWRQ:
+
+	}
+
 	return nil
 }
