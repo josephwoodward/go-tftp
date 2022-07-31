@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DatagramSize = 516 // Maximum supported datagram size
+	DatagramSize = 516 // Maximum supported datagram size...
 	BlockSize    = DatagramSize - 4
 )
 
@@ -97,7 +97,7 @@ func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
 
 	switch code {
 	case OpRRQ:
-		rrq := newReadRequest()
+		rrq := ReadReq{}
 		if err = rrq.UnmarshalBinary(buf); err != nil {
 			return err
 		}

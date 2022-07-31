@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -27,8 +28,9 @@ const (
 //| Opcode |  Filename  |   0  |    Mode    |   0  |
 //------------------------------------------------
 type ReadReq struct {
-	Filename string
-	Mode     string
+	Filename      string
+	Mode          string
+	PacketOptions map[string]string
 }
 
 func newReadRequest() *ReadReq {
@@ -78,43 +80,18 @@ func (q *ReadReq) MarshalBinary() ([]byte, error) {
 }
 
 func (q *ReadReq) UnmarshalBinary(p []byte) error {
-	r := bytes.NewBuffer(p)
-
-	var code OpCode
 	var err error
 
-	// Read the OpCode
-	if err = binary.Read(r, binary.BigEndian, &code); err != nil {
-		return err
+	s := bytes.Split(p[2:], []byte{0})
+	// Filename, mode
+	if len(s) < 2 {
+		return fmt.Errorf("missing filename or mode")
 	}
 
-	if code != OpRRQ {
-		return errors.New("invalid RRQ")
-	}
+	q.Filename = string(s[0])
+	q.Mode = string(s[1])
 
-	// Read the filename including the packet null byte delimiter
-	if q.Filename, err = r.ReadString(0); err != nil {
-		return errors.New("invalid RRQ")
-	}
-
-	// Remove the null byte from the end of the filename
-	if q.Filename = strings.TrimRight(q.Filename, "\x00"); len(q.Filename) == 0 {
-		return errors.New("invalid RRQ")
-	}
-
-	// Get the mode including null byte delimiter again
-	if q.Mode, err = r.ReadString(0); err != nil {
-		return errors.New("invalid RRQ")
-	}
-
-	// Remove null byte delimiter again
-	if q.Mode = strings.TrimRight(q.Mode, "\x00"); len(q.Mode) == 0 {
-		return errors.New("invalid RRQ")
-	}
-
-	if actual := strings.ToLower(q.Mode); actual != "octet" {
-		return errors.New("only binary transfers supported at the moment")
-	}
+	// Options
 
 	return nil
 }
@@ -122,7 +99,7 @@ func (q *ReadReq) UnmarshalBinary(p []byte) error {
 // Data acts as the data packet that will transfer the files payload
 // 2 bytes     2 bytes      n bytes
 // ----------------------------------
-// | Opcode |   Block #  |   Data     |
+// | Opcode |   Block #  |   Data   |
 // ----------------------------------
 type Data struct {
 	// Block enables UDP reliability by incrementing on each packet sent,
