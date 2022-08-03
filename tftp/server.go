@@ -35,7 +35,7 @@ type Server struct {
 	connection net.PacketConn
 }
 
-func NewServer(opts ...Option) *Server {
+func NewServer(opts ...ServerOpt) *Server {
 	c := &ServerOptions{}
 	for _, opt := range opts {
 		opt(c)

@@ -22,19 +22,21 @@ const (
 	ErrNoUser
 )
 
+// Option TFTP blksize. On default the TFTP protocol intends data transmission by 512 bytes blocks. Regarding the fact that present local networks MTU is usually equal to 1500 bytes or more, this block size is not effective. TFTP blksize option let change the block size, improving data transmission effectiveness.
+// TFTP tsize. With help of the TFTP tsize option the client can request from the server the size of the file being transmitted.
+// TFTP timeout. TFTP timeout option allows the client to set server timeout for the file being transmitted.
+// TFTP multicast. This option enables multicast file transmission mode.
+type Option map[string]string
+
 // ReadReq acts as the initial read request packet (RRQ) informing the server which file it would like to read
 //2 bytes     string    1 byte     string   1 byte
 //------------------------------------------------
 //| Opcode |  Filename  |   0  |    Mode    |   0  |
 //------------------------------------------------
 type ReadReq struct {
-	Filename      string
-	Mode          string
-	PacketOptions map[string]string
-}
-
-func newReadRequest() *ReadReq {
-	return &ReadReq{}
+	Filename string
+	Mode     string
+	Options  Option
 }
 
 // MarshalBinary won't work yet as we're only focusing on downloading
@@ -80,18 +82,23 @@ func (q *ReadReq) MarshalBinary() ([]byte, error) {
 }
 
 func (q *ReadReq) UnmarshalBinary(p []byte) error {
-	var err error
-
 	s := bytes.Split(p[2:], []byte{0})
-	// Filename, mode
 	if len(s) < 2 {
 		return fmt.Errorf("missing filename or mode")
 	}
 
+	// Filename, mode
 	q.Filename = string(s[0])
 	q.Mode = string(s[1])
+	if len(s) < 4 {
+		return nil
+	}
 
 	// Options
+	q.Options = make(Option)
+	for i := 2; i+1 < len(s); i += 2 {
+		q.Options[string(s[i])] = string(s[i+1])
+	}
 
 	return nil
 }

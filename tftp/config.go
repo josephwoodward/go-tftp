@@ -6,9 +6,9 @@ type ServerOptions struct {
 	timeout time.Duration
 }
 
-type Option = func(c *ServerOptions)
+type ServerOpt = func(c *ServerOptions)
 
-func WithTimeout(timeout time.Duration) Option {
+func WithTimeout(timeout time.Duration) ServerOpt {
 	return func(c *ServerOptions) {
 		c.timeout = timeout
 	}
