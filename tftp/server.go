@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 const (
@@ -33,6 +34,7 @@ type Server struct {
 	addr       string
 	stop       chan struct{}
 	connection net.PacketConn
+	opts       *ServerOptions
 }
 
 func NewServer(opts ...ServerOpt) *Server {
@@ -41,7 +43,9 @@ func NewServer(opts ...ServerOpt) *Server {
 		opt(c)
 	}
 
-	return &Server{}
+	return &Server{
+		opts: c,
+	}
 }
 
 func (s *Server) ListenAndServer(address string) error {
@@ -59,6 +63,7 @@ func (s *Server) ListenAndServer(address string) error {
 func (s *Server) Serve(conn net.PacketConn) error {
 	s.stop = make(chan struct{})
 	s.connection = conn
+	s.connection.SetDeadline(time.Now().Add(s.opts.timeout))
 
 	for {
 		select {
@@ -78,7 +83,7 @@ func (s *Server) process() error {
 	buf := make([]byte, DatagramSize)
 	_, addr, err := s.connection.ReadFrom(buf)
 	if err != nil {
-		return fmt.Errorf("reading UDP packet: %v", err)
+		return fmt.Errorf("reading udp packet: %v", err)
 	}
 
 	return s.handlePacket(addr, buf)
