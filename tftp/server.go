@@ -75,8 +75,6 @@ func (s *Server) Serve(conn net.PacketConn) error {
 			}
 		}
 	}
-
-	return nil
 }
 
 func (s *Server) process() error {
