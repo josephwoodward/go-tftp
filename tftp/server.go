@@ -92,6 +92,8 @@ func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
 
 	var code OpCode
 	var err error
+	msg := "HelloWorld"
+	var _ = Data{Payload: bytes.NewReader([]byte(msg))}
 
 	// Read the OpCode
 	if err = binary.Read(r, binary.BigEndian, &code); err != nil {
@@ -104,8 +106,7 @@ func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
 		if err = rrq.UnmarshalBinary(buf); err != nil {
 			return err
 		}
-	case OpWRQ:
-
+		// TODO: Find file from RRQ then write dataPkt
 	}
 
 	return nil

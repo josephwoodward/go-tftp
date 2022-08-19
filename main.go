@@ -15,6 +15,6 @@ var (
 func main() {
 	flag.Parse()
 
-	s := tftp.NewServer(tftp.WithTimeout(10 * time.Second))
+	s := tftp.NewServer(tftp.WithTimeout(60 * time.Minute))
 	log.Fatal(s.ListenAndServer(*address))
 }
