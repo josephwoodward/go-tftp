@@ -106,7 +106,16 @@ func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
 		if err = rrq.UnmarshalBinary(buf); err != nil {
 			return err
 		}
-		// TODO: Find file from RRQ then write dataPkt
+
+		// TODO: We've read the request, now to send it back...
+		conn, err := net.Dial("udp", addr.String())
+		if err != nil {
+			return err
+		}
+
+		defer func() {
+			_ = conn.Close()
+		}()
 	}
 
 	return nil
