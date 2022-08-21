@@ -87,13 +87,13 @@ func (s *Server) process() error {
 	return s.handlePacket(addr, buf)
 }
 
-func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
+func (s *Server) handlePacket(clientAddr net.Addr, buf []byte) error {
 	r := bytes.NewBuffer(buf)
 
 	var code OpCode
 	var err error
 	msg := "HelloWorld"
-	var _ = Data{Payload: bytes.NewReader([]byte(msg))}
+	_ = Data{Payload: bytes.NewReader([]byte(msg))}
 
 	// Read the OpCode
 	if err = binary.Read(r, binary.BigEndian, &code); err != nil {
@@ -107,11 +107,14 @@ func (s *Server) handlePacket(addr net.Addr, buf []byte) error {
 			return err
 		}
 
-		// TODO: We've read the request, now to send it back...
-		conn, err := net.Dial("udp", addr.String())
+		log.Printf("[%s] requested file : %s", clientAddr, rrq.Filename)
+
+		conn, err := net.Dial("udp", clientAddr.String())
 		if err != nil {
 			return err
 		}
+
+		// TODO: We've read the request, now to send it back...
 
 		defer func() {
 			_ = conn.Close()
