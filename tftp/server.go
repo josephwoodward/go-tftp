@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -36,6 +37,12 @@ type Server struct {
 	connection net.PacketConn
 	opts       *ServerOptions
 }
+
+// ReadHandler handles server reads
+type ReadHandler func(filename string, reader io.Reader) error
+
+// WriteHandler handles write requests
+type WriteHandler func(writer io.Writer) error
 
 func NewServer(opts ...ServerOpt) *Server {
 	c := &ServerOptions{}
