@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -36,6 +37,7 @@ type Server struct {
 	stop       chan struct{}
 	connection net.PacketConn
 	opts       *ServerOptions
+	wg         sync.WaitGroup
 }
 
 // ReadHandler handles server reads
@@ -99,8 +101,6 @@ func (s *Server) handlePacket(clientAddr net.Addr, buf []byte) error {
 
 	var code OpCode
 	var err error
-	msg := "HelloWorld"
-	_ = Data{Payload: bytes.NewReader([]byte(msg))}
 
 	// Read the OpCode
 	if err = binary.Read(r, binary.BigEndian, &code); err != nil {
@@ -121,7 +121,11 @@ func (s *Server) handlePacket(clientAddr net.Addr, buf []byte) error {
 			return err
 		}
 
-		// TODO: We've read the request, now to send it back...
+		s.wg.Add(1)
+		go func() {
+			// TODO: We've read the request, now to send it back...
+			s.opts.readHandler(rrq.Filename)
+		}()
 
 		defer func() {
 			_ = conn.Close()
